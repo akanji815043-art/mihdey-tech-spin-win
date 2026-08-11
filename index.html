@@ -1,1 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Mihdey Tech Spin & Win</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f4f7fb;
+  color:#111;
+}
+
+.container{
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+.card{
+  width:100%;
+  max-width:430px;
+  background:white;
+  padding:25px;
+  border-radius:22px;
+  text-align:center;
+  box-shadow:0 10px 35px rgba(0,0,0,.12);
+}
+
+h1{
+  margin:0;
+  font-size:30px;
+}
+
+.subtitle{
+  color:#16a36b;
+  font-size:20px;
+  font-weight:bold;
+  margin:5px 0 20px;
+}
+
+.wheel-box{
+  position:relative;
+  width:320px;
+  max-width:100%;
+  margin:auto;
+}
+
+canvas{
+  width:100%;
+  height:auto;
+}
+
+.pointer{
+  position:absolute;
+  top:-8px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:35px;
+  z-index:2;
+}
+
+button{
+  width:100%;
+  border:none;
+  padding:15px;
+  margin-top:18px;
+  border-radius:12px;
+  background:#16a36b;
+  color:white;
+  font-size:17px;
+  font-weight:bold;
+}
+
+#result{
+  font-weight:bold;
+  min-height:25px;
+  margin:15px 0;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  margin-top:10px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  font-size:16px;
+}
+
+.save{
+  background:#111;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h1>MIHDEY TECH</h1>
+
+<div class="subtitle">
+SPIN & WIN 🎁
+</div>
+
+<div class="wheel-box">
+
+<div class="pointer">▼</div>
+
+<canvas id="wheel" width="320" height="320"></canvas>
+
+</div>
+
+<button id="spinBtn">
+SPIN NOW
+</button>
+
+<p id="result">
+Tap the button to spin!
+</p>
+
+<input id="name" type="text" placeholder="Your Name">
+
+<input id="phone" type="tel" placeholder="Phone Number">
+
+<button class="save" id="saveBtn">
+SAVE ENTRY
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+
+const spinBtn = document.getElementById("spinBtn");
+const result = document.getElementById("result");
+
+const prizes = [
+"₦500",
+"₦1,000",
+"DATA",
+"TRY AGAIN",
+"₦2,000",
+"GIFT",
+"₦500",
+"TRY AGAIN"
+];
+
+const colors = [
+"#16a36b",
+"#111827",
+"#f59e0b",
+"#e5e7eb",
+"#16a36b",
+"#111827",
+"#f59e0b",
+"#e5e7eb"
+];
+
+let angle = 0;
+let spinning = false;
+
+function drawWheel(){
+
+const centerX = 160;
+const centerY = 160;
+const radius = 155;
+
+const slice = Math.PI * 2 / prizes.length;
+
+ctx.clearRect(0,0,320,320);
+
+for(let i=0;i<prizes.length;i++){
+
+const start = angle + i * slice;
+const end = start + slice;
+
+ctx.beginPath();
+
+ctx.moveTo(centerX,centerY);
+
+ctx.arc(
+centerX,
+centerY,
+radius,
+start,
+end
+);
+
+ctx.closePath();
+
+ctx.fillStyle = colors[i];
+ctx.fill();
+
+ctx.strokeStyle = "#ffffff";
+ctx.lineWidth = 3;
+ctx.stroke();
+
+ctx.save();
+
+ctx.translate(centerX,centerY);
+
+ctx.rotate(start + slice/2);
+
+ctx.fillStyle =
+colors[i] === "#e5e7eb"
+? "#111"
+: "#fff";
+
+ctx.font = "bold 15px Arial";
+
+ctx.textAlign = "right";
+
+ctx.fillText(
+prizes[i],
+radius - 15,
+5
+);
+
+ctx.restore();
+
+}
+
+}
+
+drawWheel();
+
+spinBtn.addEventListener("click",function(){
+
+if(spinning) return;
+
+spinning = true;
+
+spinBtn.disabled = true;
+
+result.textContent = "Spinning...";
+
+const startingAngle = angle;
+
+const extraRotation =
+Math.PI * 2 * (5 + Math.random() * 4);
+
+const duration = 4000;
+
+const startTime = performance.now();
+
+function animate(currentTime){
+
+const progress =
+Math.min(
+(currentTime - startTime) / duration,
+1
+);
+
+const eased =
+1 - Math.pow(1 - progress,3);
+
+angle =
+startingAngle +
+extraRotation * eased;
+
+drawWheel();
+
+if(progress < 1){
+
+requestAnimationFrame(animate);
+
+}else{
+
+const slice =
+Math.PI * 2 / prizes.length;
+
+const normalized =
+((Math.PI * 1.5 - angle) %
+(Math.PI * 2) + Math.PI * 2)
+% (Math.PI * 2);
+
+const index =
+Math.floor(normalized / slice)
+% prizes.length;
+
+result.textContent =
+"🎉 YOU WON: " + prizes[index];
+
+spinning = false;
+
+spinBtn.disabled = false;
+
+}
+
+}
+
+requestAnimationFrame(animate);
+
+});
+
+document.getElementById("saveBtn")
+.addEventListener("click",function(){
+
+const name =
+document.getElementById("name").value.trim();
+
+const phone =
+document.getElementById("phone").value.trim();
+
+if(!name || !phone){
+
+result.textContent =
+"Please enter your name and phone number.";
+
+return;
+
+}
+
+localStorage.setItem(
+"mihdey_entry",
+JSON.stringify({
+name:name,
+phone:phone
+})
+);
+
+result.textContent =
+"✅ Entry saved successfully!";
+
+});
+
+</script>
+
+</body>
+</html>
